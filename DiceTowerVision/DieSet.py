@@ -24,7 +24,7 @@ class DieSet:
             dies.add_die(str(rank),Die.create_common_die_from_images(die_template,rank,log_level=log_level))
         return dies
     
-    def get_die_faces_from_image(self, image_RGB, rolls=None, mask=None, confidence_threshold=0.25, log_level=LOG_LEVEL_FATAL):
+    def get_die_faces_from_image(self, image_RGB, rolls=None, mask=None, confidence_threshold=0.5, log_level=LOG_LEVEL_FATAL):
         if log_level >= LOG_LEVEL_VERBOSE:
             plt.imshow(image_RGB)
             plt.show()
@@ -45,7 +45,7 @@ class DieSet:
             image_ID = np.copy(image_RGB)
 
         while True:
-            potential_matches = [m for m in self.yield_potential_matches_from_image(rolls_remaining,image_RGB,image_HSV, die_location_mask,log_level)]
+            potential_matches = [m for m in self.__yield_potential_matches_from_image(rolls_remaining,image_RGB,image_HSV, die_location_mask,log_level)]
             confidence_scores = np.array([m["confidence"] for m in potential_matches])
             if log_level>=LOG_LEVEL_DEBUG:
                 plt.bar(np.arange(0,len(confidence_scores)),confidence_scores)
@@ -56,7 +56,7 @@ class DieSet:
                 break
             die = self.dies[best_match["die_name"]]
             sample = die.get_sample_at_point_from_image(image_RGB, best_match["point"], image_HSV, log_level=log_level)
-            face, _ = die.get_best_face_match_from_sample(sample, log_level=log_level)
+            face, score = die.get_best_face_match_from_sample(sample, log_level=log_level)
             results[best_match["die_name"]].append(face)
             cv.circle(die_location_mask,best_match["point"],int(die.imaging_settings["average_circumscribed_radius"]*die.geometry["enscribed_perimeter_ratio"]),0.0,cv.FILLED)
 
@@ -67,6 +67,7 @@ class DieSet:
                 print("Found %s with value %u"%(best_match["die_name"],face.value))
                 plt.imshow(die_location_mask,cmap='gray')
                 plt.show()
+
         if log_level>=LOG_LEVEL_INFO:
             roll_total = 0
             
@@ -74,7 +75,7 @@ class DieSet:
             for die_name in results.keys():
                 result_text = "D%s:"%die_name
                 for die_result in results[die_name]:
-                    result_text += " %u"%die_result.value
+                    result_text += " %u"%(die_result.value)
                     roll_total += die_result.value
                 cv.putText(image_ID,result_text,(50,textY),cv.FONT_HERSHEY_SIMPLEX,5,(0,0,0),10)
                 textY += 150
@@ -87,7 +88,7 @@ class DieSet:
         return results
 
 
-    def yield_potential_matches_from_image(self, rolls_remaining, image_RGB, image_HSV, mask, log_level=LOG_LEVEL_FATAL):
+    def __yield_potential_matches_from_image(self, rolls_remaining, image_RGB, image_HSV, mask, log_level=LOG_LEVEL_FATAL):
         for die_name in rolls_remaining.keys():
             if rolls_remaining[die_name] != 0:
                 die = self.dies[die_name]

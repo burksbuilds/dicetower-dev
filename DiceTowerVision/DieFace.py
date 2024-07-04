@@ -7,10 +7,11 @@ from DiceTowerVision.DieFaceSample import *
 
 class DieFace:
     def __init__(self,value):
-        self.value = value
+        self.value = int(value)
         self.samples = list()
 
     def add_samples(self, samples):
+
         for s in samples:
             self.samples.append(s)
 

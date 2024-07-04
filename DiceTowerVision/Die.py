@@ -29,7 +29,7 @@ class Die:
         die = Die(face_values, geometry, imaging_settings,log_level)
         for fv in die.faces.keys():
             image_path = file_template.replace("FV#",str(fv))
-            die.faces[fv].add_samples(DieFaceSample.create_from_images(image_path,die.geometry,autocrop,log_level))
+            die.faces[fv].add_samples([DieFaceSample.create_from_image(image_path,die.geometry,autocrop,log_level)])
         if imaging_settings is None:
             die.imaging_settings = die.calculate_imaging_settings(log_level)
         return die
@@ -106,6 +106,7 @@ class Die:
             mask = cv.inRange(image_HSV,(self.imaging_settings["hue_start"],self.imaging_settings["saturation_threshold"],0),(self.imaging_settings["hue_end"],255,255))
         if log_level>=LOG_LEVEL_DEBUG:
             plt.imshow(mask, cmap='gray')
+            plt.title("Color Filter Between Hue=[%u, %u] with Saturation > %u"%(self.imaging_settings["hue_start"],self.imaging_settings["hue_end"],self.imaging_settings["saturation_threshold"]))
             plt.show() 
         return fill_all_contours(mask,log_level)
     
@@ -118,11 +119,12 @@ class Die:
         if mask is not None:
             die_mask = cv.bitwise_and(die_mask,mask)
         dist_transform = cv.distanceTransform(die_mask,cv.DIST_L2,5)
+        _, maxVal, _, maxP = cv.minMaxLoc(dist_transform)
+        confidence = maxVal / (self.imaging_settings["average_circumscribed_radius"]*self.geometry["enscribed_perimeter_ratio"])
         if log_level >= LOG_LEVEL_DEBUG:
             plt.imshow(dist_transform,cmap='gray')
+            plt.title("Distance Transform, max=%f of Enscribed Perimeter"%(confidence))
             plt.show()
-        _, maxVal, _, maxP = cv.minMaxLoc(dist_transform)
-        confidence = maxVal / self.imaging_settings["average_circumscribed_radius"]
         return maxP, confidence
     
     def get_sample_at_point_from_image(self, image_RGB, point, image_HSV=None, log_level=LOG_LEVEL_FATAL):
@@ -132,30 +134,6 @@ class Die:
         return DieFaceSample(DieFaceSample.crop_sample_from_image(image_RGB, color_mask, point, self.imaging_settings["average_circumscribed_radius"],log_level),self.geometry,log_level)
     
 
-    @DeprecationWarning
-    def extract_samples_from_image(self, image_RGB, expected_dice=-1, log_level=LOG_LEVEL_FATAL):
-        image_HSV = cv.cvtColor(image_RGB,cv.COLOR_RGB2HSV)
-        color_mask = self.get_color_mask_from_image(image_HSV,log_level)
-        dist_transform = cv.distanceTransform(color_mask,cv.DIST_L2,5)
-
-        found_dice=0
-        while found_dice < expected_dice or expected_dice < 0:
-            if log_level >= LOG_LEVEL_DEBUG:
-                plt.imshow(dist_transform,cmap='gray')
-                plt.show()
-            _, maxVal, _, maxP = cv.minMaxLoc(dist_transform)
-            if maxVal < self.imaging_settings["average_circumscribed_radius"]*self.geometry["enscribed_face_ratio"]:
-                if expected_dice < 0:
-                    return
-                if maxVal == 0:
-                    if log_level >= LOG_LEVEL_ERROR:
-                        print("ERROR: Unable to find all expected dice")
-                    return
-                if log_level >= LOG_LEVEL_WARN:
-                    print("WARNING: remaining dice may be false positives!")
-            found_dice += 1
-            yield DieFaceSample(DieFaceSample.crop_sample_from_image(image_RGB, color_mask, maxP, self.imaging_settings["average_circumscribed_radius"],log_level),self.geometry,log_level)
-            cv.circle(dist_transform,maxP,int(self.imaging_settings["average_circumscribed_radius"]*self.geometry["enscribed_perimeter_ratio"]),0.0,cv.FILLED)
         
     def get_best_face_match_from_sample(self, sample, log_level=LOG_LEVEL_FATAL):
         results = self.compare_to(sample,log_level)
