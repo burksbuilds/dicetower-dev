@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 *.jpg
 
+/DiceTowerVision/STservo_sdk
