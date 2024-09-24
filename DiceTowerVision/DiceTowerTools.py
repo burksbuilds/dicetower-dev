@@ -366,3 +366,27 @@ def calibrate_from_checkerboard(image, point_count):
     optimal_camera_matrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, distortion_coeffs, image.shape[::-1], 1)
     map_x, map_y = cv.initUndistortRectifyMap(camera_matrix, distortion_coeffs, None, optimal_camera_matrix, image.shape[::-1], 5)
     return map_x, map_y
+
+def get_optimal_grid_layout(fill_area, aspect_ratio_tile, num_tiles):
+    aspect_ratio_area = fill_area[0] / fill_area[1]
+    max_area = 0
+    #best_size = (0,0)
+    #best_layout = (0,0)
+    for num_rows in np.arange(1,num_tiles+1):
+        num_cols = np.ceil(num_tiles/num_rows)
+        aspect_ratio_grid = aspect_ratio_tile*num_cols/num_rows
+        if aspect_ratio_grid > aspect_ratio_area:#matching width, wasted height
+            tile_width = fill_area[0]/num_cols
+            tile_height = tile_width/aspect_ratio_tile
+            tiled_area = (0,int((fill_area[1]-num_rows*tile_height)/2),num_cols*tile_width,num_rows*tile_height)
+        else: #matching height, wasted width
+            tile_height = fill_area[1]/num_rows
+            tile_width = tile_height * aspect_ratio_tile
+            tiled_area = (int((fill_area[0]-num_cols*tile_width)/2),0,num_cols*tile_width,num_rows*tile_height)
+        tile_area = tile_width*tile_height
+        if tile_area > max_area:
+            max_area = tile_area
+            best_size = (int(tile_width),int(tile_height))
+            best_layout = (num_rows, num_cols)
+            best_tiled_area = tiled_area
+    return best_layout, best_size, best_tiled_area

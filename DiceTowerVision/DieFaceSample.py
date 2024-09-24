@@ -126,7 +126,7 @@ class DieFaceSample:
 
 
     @staticmethod
-    def crop_sample_from_image(image_RGB, mask, center, radius, log_level=LOG_LEVEL_DEBUG):
+    def crop_sample_from_image(image_RGB, mask, center, radius, log_level=LOG_LEVEL_FATAL):
         cropX1 = int(max(center[0]-radius-DieFaceSample.crop_padding,0))
         cropX2 = int(min(center[0]+radius+DieFaceSample.crop_padding,image_RGB.shape[1]-1))
         cropY1 = int(max(center[1]-radius-DieFaceSample.crop_padding,0))

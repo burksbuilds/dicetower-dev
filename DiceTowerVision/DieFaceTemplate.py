@@ -96,6 +96,47 @@ class DieFaceMatchResult:
         plt.suptitle("Match Result (Confidence = %2.0f%%)"%(self.confidence*100))
         plt.show()
 
+    def to_flat_dict(self, rank):
+        d = {
+            #'die' : '' if self.face is None else self.face.die.name,
+            'face' : '' if self.face is None else str(self.face.value),
+            'face_confidence' : self.confidence,
+            'face_rank' : rank,
+            'top_score' : '' if np.isinf(self.top_face_scores[0]) else self.top_face_scores[0],
+            'top_score_eroded' : '' if np.isinf(self.top_face_scores[1]) else self.top_face_scores[1],
+            # 'top_confidence' : self.confidences[0],
+            # 'top_confidence_eroded' : self.confidences[1],
+            'top_match_angle' : '' if self.top_face_match.affine_warp is None else self.top_face_match.affine_warp_components.angle,
+            'top_match_shear' : '' if self.top_face_match.affine_warp is None else self.top_face_match.affine_warp_components.shear,
+            'top_match_scale_x' : '' if self.top_face_match.affine_warp is None else self.top_face_match.affine_warp_components.scale_x,
+            'top_match_scale_y' : '' if self.top_face_match.affine_warp is None else self.top_face_match.affine_warp_components.scale_y
+
+        }
+        for i in np.arange(0,len(self.adj_face_scores)):
+            d["adjacent_%u_score"%(i+1)] = '' if np.isinf(self.adj_face_scores[i][0]) else self.adj_face_scores[i][0]
+            d["adjacent_%u_score_eroded"%(i+1)] = '' if np.isinf(self.adj_face_scores[i][1]) else self.adj_face_scores[i][1]
+            # d["adjacent_%u_confidence"%(i+1)] = self.confidences[2*i+2]
+            # d["adjacent_%u_confidence_eroded"%(i+1)] = self.confidences[2*i+3]
+            d["adjacent_%u_match_angle"%(i+1)] = '' if self.adj_face_matches[i].affine_warp is None else self.adj_face_matches[i].affine_warp_components.angle
+            d["adjacent_%u_match_shear"%(i+1)] = '' if self.adj_face_matches[i].affine_warp is None else self.adj_face_matches[i].affine_warp_components.shear
+            d["adjacent_%u_match_scale_x"%(i+1)] = '' if self.adj_face_matches[i].affine_warp is None else self.adj_face_matches[i].affine_warp_components.scale_x
+            d["adjacent_%u_match_scale_y"%(i+1)] = '' if self.adj_face_matches[i].affine_warp is None else self.adj_face_matches[i].affine_warp_components.scale_y
+        return d
+    
+    @staticmethod
+    def get_flat_dict_field_names(num_adjacent_faces):
+        names = ['face', 'face_confidence', 'face_rank']
+        for i in np.arange(0,num_adjacent_faces+1):
+            prefix = 'top_' if i == 0 else "adjacent_%u_"%i
+            names.append(prefix+"score")
+            names.append(prefix+"score_eroded")
+            # names.append(prefix+"confidence")
+            # names.append(prefix+"confidence_eroded")
+            names.append(prefix+"match_angle")
+            names.append(prefix+"match_shear")
+            names.append(prefix+"match_scale_x")
+            names.append(prefix+"match_scale_y")
+        return names
 
 
 @dataclass

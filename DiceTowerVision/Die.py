@@ -19,6 +19,19 @@ class DieSearchResult:
     point:object = field(default_factory=np.zeros((1,2)))
     confidence:float = field(default=0)
 
+    def to_flat_dict(self):
+        d = {
+            'name' : self.die.name,
+            'point_x' : self.point[0],
+            'point_y' : self.point[1],
+            'confidence' : self.confidence
+        }
+        return d
+    
+    @staticmethod
+    def get_flat_dict_field_names():
+        return ['name', 'point_x', 'point_y', 'confidence']
+
 class Die:
     __hue_filter_capture = 0.90
     __hue_filter_capture_adj = 0.025

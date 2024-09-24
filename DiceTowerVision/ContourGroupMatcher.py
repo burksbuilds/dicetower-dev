@@ -6,21 +6,11 @@ from dataclasses import dataclass, field
 from itertools import compress
 
 @dataclass
-class ContourGroupSearchResult:
-    matches_found:int = field(default=0)
-    matches_good:int = field(default=0)
-    matches_used:int = field(default=0)
-    matches_used_list:list[object] = field(default=None)
-    matches_used_keypoints:list[object] = field(default=None)
-    affine_warp_components:object = field(default_factory= lambda : AffineWarpComponents())
-    affine_warp:np.ndarray = field(default_factory= lambda: np.array([[1.0, 0.0, 0.0],[0.0,1.0,0.0]]))
-
-@dataclass
 class AffineWarpComponents:
     angle:float = field(default=0) #degrees
     shear:float = field(default=0)
-    scale_x:float = field(default=1.00)
-    scale_x:float = field(default=1.00)
+    scale_x:float = field(default=0)
+    scale_y:float = field(default=0)
 
     @staticmethod
     def decompose_affine_warp(warp):
@@ -41,6 +31,18 @@ class AffineWarpComponents:
         # result.offset = transformed_center[0:2]
         return result
     
+
+@dataclass
+class ContourGroupSearchResult:
+    matches_found:int = field(default=0)
+    matches_good:int = field(default=0)
+    matches_used:int = field(default=0)
+    matches_used_list:list[object] = field(default=None)
+    matches_used_keypoints:list[object] = field(default=None)
+    affine_warp_components:AffineWarpComponents = field(default_factory= lambda : AffineWarpComponents())
+    affine_warp:np.ndarray = field(default_factory= lambda: np.array([[1.0, 0.0, 0.0],[0.0,1.0,0.0]]))
+
+
 
 
 

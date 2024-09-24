@@ -28,12 +28,12 @@ class DiceTower:
     # Default setting
     BAUDRATE                        = 1000000           # STServo default baudrate : 1000000
     ARM_ID                          = 1
-    ARM_LOWERED_POSITION            = 0  +970          # For receiving dice
-    ARM_RAISED_POSITION             = 512+970+50          # for pouring dice
+    ARM_LOWERED_POSITION            = 0  +970           # For receiving dice
+    ARM_RAISED_POSITION             = 512+970+40        # for pouring dice
     ARM_RAISING_SPEED               = 1500              # STServo moving speed
     ARM_RAISING_ACC                 = 200               # STServo moving acc
     ARM_LOWERING_SPEED              = 5000              # STServo moving speed
-    ARM_LOWERING_ACC                = 100               # STServo moving acc
+    ARM_LOWERING_ACC                = 25               # STServo moving acc
     ARM_RESET_SPEED                 = 200               # STServo moving speed
     ARM_RESET_ACC                   = 10                # STServo moving acc
     POSITION_TOLERANCE              = 50
@@ -45,6 +45,7 @@ class DiceTower:
     FLAP_ACC                        = 100
     FOCAL_LENGTH                    = 8.2               # mm
     PIXEL_SIZE                      = 0.00141           #mm / px (w & h)
+    camera_resolution = (2592,1944)
 
     def __init__(self, servo_port_name, camera_id=0):
         self.camera_id = camera_id
@@ -62,7 +63,9 @@ class DiceTower:
             raise Exception("Unable to open serial port for communication to servo: %s"%(self.servo_port_name))
         if not self.servo_port.setBaudRate(DiceTower.BAUDRATE):
             raise Exception("Unable to set serial port baudrate to %u for communication to servo"%(DiceTower.BAUDRATE))
-        cam = cv.VideoCapture(self.camera_id)
+        cam = cv.VideoCapture(self.camera_id, cv.CAP_DSHOW)
+        cam.set(cv.CAP_PROP_FRAME_WIDTH, self.camera_resolution[0])
+        cam.set(cv.CAP_PROP_FRAME_HEIGHT, self.camera_resolution[1])
         success, image = cam.read()
         if not success:
             raise Exception("Unable to capture a frame from the camera with id %u"%self.camera_id)
@@ -116,9 +119,9 @@ class DiceTower:
         while not (DiceTower.__position_in_tolerance(current_position,position, DiceTower.POSITION_TOLERANCE) and current_speed == 0):
             time.sleep(0.01)
             current_position, current_speed = self.__get_position_speed(id)
-            print("Position: %f ; Speed: %f"%(current_position,current_speed))
+            #print("Position: %f ; Speed: %f"%(current_position,current_speed))
             if timeout > 0 and (time.monotonic() - start_time > timeout):
-                print("Target Position: %u ; Current Position: %u ; Current Speed: %u"%(position,current_position, current_speed))
+                #print("Target Position: %u ; Current Position: %u ; Current Speed: %u"%(position,current_position, current_speed))
                 raise TimeoutError()
         
 
