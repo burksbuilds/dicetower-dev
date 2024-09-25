@@ -10,8 +10,8 @@ gui_text_zone = (0,0,280,400)
 gui_scene_zone = (280,0,400,400)
 gui_sample_zone = (680,0,600,400)
 
-background_file_template = "Images\\Calibration\\background (*).jpg"
-roll_file_template = "Images\\Rolls\\New\\FN#.jpg"
+background_file_template = os.path.join("PassiveAppImages","background (*).jpg")
+roll_file_template = os.path.join("PassiveAppImages","FN#.jpg")
 
 background_images_RGB = get_mactching_images_RGB(background_file_template,log_level=LOG_LEVEL_INFO)
 roi_mask = get_roi_mask_from_bg_images(background_images_RGB,range=(0,10), filter=25, dilation=5, log_level=LOG_LEVEL_INFO)
@@ -20,7 +20,7 @@ roi_mask = get_roi_mask_from_bg_images(background_images_RGB,range=(0,10), filte
 # cal_BGR = cv.imread(calibration_file)
 # map_x, map_y = calibrate_from_checkerboard(cv.cvtColor(cal_BGR,cv.COLOR_BGR2GRAY),(10,10))
 
-file_template = "Images\\Templates\\DDR# (A) (FV#).jpg"
+file_template = os.path.join("PassiveAppImages","DDR# (A) (FV#).jpg")
 dieset = DieSet.create_common_die_set_from_images(file_template,names=[4,6,8,10,12,20,100],roi_mask=roi_mask,log_level=LOG_LEVEL_WARN)
 #dieset = DieSet.create_common_die_set_from_images(file_template,names=[4],roi_mask=roi_mask,log_level=LOG_LEVEL_WARN)
 
