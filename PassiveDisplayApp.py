@@ -1,6 +1,5 @@
 import cv2 as cv
 import numpy as np
-from matplotlib import pyplot as plt
 from DiceTowerVision import *
 import datetime
 cam_id = 1

@@ -4,9 +4,9 @@ from matplotlib import pyplot as plt
 import os
 from DiceTowerVision.DiceTowerTools import *
 from DiceTowerVision.DieFaceTemplate import *
-from scipy.spatial.transform import Rotation
+#from scipy.spatial.transform import Rotation
 import math
-import mahotas
+#import mahotas
 from itertools import compress
 
 class DieFaceSample:
